@@ -17,7 +17,7 @@ def slavePodTemplate = """
                   - jenkins-jenkins-master
               topologyKey: "kubernetes.io/hostname"
         containers:
-        - name: github_token_pod
+        - name: githubtoken
           image: fuchicorp/buildtools:latest
           imagePullPolicy: IfNotPresent
           command:
@@ -37,20 +37,20 @@ def slavePodTemplate = """
     """
     properties([
       parameters([
-        choice(choices: ['beck', 'kari', 'mike', 'joe'], 
+        choice(choices: ['fsadykov', 'antonbabenko', 'mojombo', 'defunkt', 'beckkari8'], 
         description: 'Select the user', 
         name: 'github_user')
           ])
       ])
     podTemplate(name: k8slabel, label: k8slabel, yaml: slavePodTemplate, showRawYaml: false) {
       node(k8slabel){
-        container("github_token_pod"){
+        container( "githubtoken") {
         withCredentials([string(credentialsId: 'github-token', variable: 'GIT_TOKEN')]) {
-        stage("Check User Credentials") {
-           sh  'curl -H "Authorization: token $GIT_TOKEN" -X GET "https://api.github.com/users" -I |grep "HTTP/1.1 200 OK" '
+           stage("Check User Credentials") {
+              sh  'curl -H "Authorization: token $GIT_TOKEN" -X GET "https://api.github.com/users" -I |grep "HTTP/1.1 200 OK" '
           }
-        stage("Get User Credentials"){
-             sh  "curl -H \"Authorization: token $GIT_TOKEN \" -X GET 'https://api.github.com/users/${github_user}' "
+           stage("Get User Credentials"){
+              sh  "curl -H \"Authorization: token $GIT_TOKEN \" -X GET 'https://api.github.com/users/${github_user}' "
            }
           }
         }
